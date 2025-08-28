@@ -57,28 +57,39 @@ export const deleteRoom = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 //Filter/Search Rooms by Price, Capacity, Rating
+
 export const getFilteredRooms = async (req, res) => {
   try {
-    const { minPrice, maxPrice, capacity, rating } = req.query;
-    const filter = {};
+    const { ranges } = req.query;
+    console.log("Received ranges:", ranges);
 
-    if (minPrice && maxPrice) {
-      filter.price = { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) };
+    if (!ranges) {
+      const allRooms = await Room.find();
+      return res.json(allRooms);
     }
 
-    if (capacity) {
-      filter.capacity = parseInt(capacity);
-    }
+    const rangeArray = ranges.split(",").map((range) => {
+      const [minStr, maxStr] = range.split("-");
+      const min = parseInt(minStr, 10);
+      const max = parseInt(maxStr, 10);
 
-    // If you have rating in room model
-    if (rating) {
-      filter.rating = { $gte: parseFloat(rating) };
-    }
+      if (isNaN(min) || isNaN(max)) {
+        throw new Error(`Invalid range: ${range}`);
+      }
 
-    const rooms = await Room.find(filter);
-    res.json(rooms);
+      return { min, max };
+    });
+
+    const orConditions = rangeArray.map(({ min, max }) => ({
+      price: { $gte: min, $lte: max },
+    }));
+
+    const rooms = await Room.find({ $or: orConditions });
+    return res.json(rooms);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Filter error:", err);
+    return res.status(500).json({ error: "Failed to filter rooms." });
   }
 };

@@ -16,6 +16,8 @@ router.post("/", createRoom);
 // Get all rooms
 router.get("/", getRooms);
 
+router.get("/filter", getFilteredRooms);
+
 // Get single room by ID
 router.get("/:id", getRoomById);
 
@@ -24,8 +26,5 @@ router.put("/:id", updateRoom);
 
 // Delete room by ID
 router.delete("/:id", deleteRoom);
-
-router.get("/rooms", getFilteredRooms);
-
 
 export default router;
