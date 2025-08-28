@@ -16,7 +16,10 @@ const app = express();
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173", // for local dev
+      "https://instanest-client.netlify.app", // for production
+    ],
     credentials: true,
   })
 );
